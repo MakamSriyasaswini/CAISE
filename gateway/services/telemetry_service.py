@@ -22,6 +22,7 @@ else:
     )
 
 
+
 def test_redis_connection():
     return redis_client.ping()
 
