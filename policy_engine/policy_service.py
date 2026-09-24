@@ -23,17 +23,12 @@ if REDIS_URL:
         decode_responses=True
     )
 else:
-if REDIS_URL:
-    redis_client = redis.from_url(
-        REDIS_URL,
-        decode_responses=True
-    )
-else:
     redis_client = redis.Redis(
         host=REDIS_HOST,
         port=REDIS_PORT,
         decode_responses=True
     )
+
 
 def get_db_connection():
     return psycopg2.connect(
