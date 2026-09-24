@@ -1,0 +1,101 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio-a:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    volumes:
+      - minio_a_data:/data
+
+  minio-b:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "19100:9000"
+      - "19101:9001"
+    volumes:
+      - minio_b_data:/data
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        until mc alias set minioa http://minio-a:9000
+        ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY}; do
+          sleep 2;
+        done;
+        until mc alias set miniob http://minio-b:9000
+        ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY}; do
+          sleep 2;
+        done;
+        mc mb --ignore-existing minioa/${MINIO_BUCKET};
+        mc mb --ignore-existing miniob/${MINIO_B_BUCKET}
+    depends_on:
+      minio-a:
+        condition: service_started
+      minio-b:
+        condition: service_started
+
+  gateway:
+    build: .
+    env_file:
+      - .env.docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+
+volumes:
+
+  postgres_data:
+
+  minio_a_data:
+
+  minio_b_data:

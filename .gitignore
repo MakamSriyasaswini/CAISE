@@ -1,0 +1,37 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local databases / temporary files
+*.sqlite
+*.db
+
+# Test-generated files
+k8s_downloaded.txt
+
+# Python coverage
+.coverage
+htmlcov/
+
+# MinIO / local storage
+*.data

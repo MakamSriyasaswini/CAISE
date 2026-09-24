@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS object_metadata (
+    id SERIAL PRIMARY KEY,
+    object_name VARCHAR(255) NOT NULL,
+    bucket_name VARCHAR(255) NOT NULL,
+    object_key VARCHAR(500) NOT NULL UNIQUE,
+    file_size BIGINT NOT NULL,
+    content_type VARCHAR(100),
+    storage_provider VARCHAR(50) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

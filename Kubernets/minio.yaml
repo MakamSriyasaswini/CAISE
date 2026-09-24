@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-a-pvc
+  namespace: caise
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-b-pvc
+  namespace: caise
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-a
+  namespace: caise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-a
+  template:
+    metadata:
+      labels:
+        app: minio-a
+    spec:
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: caise-config
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: caise-config
+                  key: MINIO_SECRET_KEY
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-a-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-a
+  namespace: caise
+spec:
+  selector:
+    app: minio-a
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-b
+  namespace: caise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-b
+  template:
+    metadata:
+      labels:
+        app: minio-b
+    spec:
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: caise-config
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: caise-config
+                  key: MINIO_SECRET_KEY
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-b-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-b
+  namespace: caise
+spec:
+  selector:
+    app: minio-b
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
