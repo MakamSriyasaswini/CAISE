@@ -20,7 +20,6 @@ redis_client = redis.from_url(
     decode_responses=True
 ) 
 
-
 def get_db_connection():
     return psycopg2.connect(
         host=DATABASE_HOST,
