@@ -15,12 +15,6 @@ from gateway.config.settings import (
 from policy_engine.policy import classify_object
 
 
-if REDIS_URL:
-    redis_client = redis.from_url(
-        REDIS_URL,
-        decode_responses=True
-    )
-else:
 redis_client = redis.from_url(
     REDIS_URL,
     decode_responses=True
