@@ -18,7 +18,7 @@ from policy_engine.policy import classify_object
 redis_client = redis.from_url(
     REDIS_URL,
     decode_responses=True
-)
+) 
 
 
 def get_db_connection():
