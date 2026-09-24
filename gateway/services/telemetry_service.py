@@ -3,16 +3,23 @@ import time
 import redis
 
 from gateway.config.settings import (
+    REDIS_URL,
     REDIS_HOST,
     REDIS_PORT
 )
 
 
-redis_client = redis.Redis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    decode_responses=True
-)
+if REDIS_URL:
+    redis_client = redis.from_url(
+        REDIS_URL,
+        decode_responses=True
+    )
+else:
+    redis_client = redis.Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        decode_responses=True
+    )
 
 
 def test_redis_connection():
