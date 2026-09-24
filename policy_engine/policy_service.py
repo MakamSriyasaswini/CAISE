@@ -9,6 +9,7 @@ from gateway.config.settings import (
     DATABASE_NAME,
     DATABASE_USER,
     DATABASE_PASSWORD,
+    REDIS_URL,
     REDIS_HOST,
     REDIS_PORT
 )
@@ -16,11 +17,17 @@ from gateway.config.settings import (
 from policy_engine.policy import classify_object
 
 
-redis_client = redis.Redis(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    decode_responses=True
-)
+if REDIS_URL:
+    redis_client = redis.from_url(
+        REDIS_URL,
+        decode_responses=True
+    )
+else:
+    redis_client = redis.Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        decode_responses=True
+    )
 
 
 def get_db_connection():
