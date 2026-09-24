@@ -62,7 +62,7 @@ class MinIOProvider(StorageProvider):
         )
 
         return response["Body"].read()
-        
+
     def delete_file(self, filename):
 
         self.client.delete_object(
@@ -76,8 +76,6 @@ class MinIOProvider(StorageProvider):
             "status": "DELETED"
         }
 
-        return response["Body"].read()
-    
     def migrate_object_to(self, filename, target_provider):
 
         file_data = self.download_file(filename)
